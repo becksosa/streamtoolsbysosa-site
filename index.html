@@ -38,6 +38,7 @@
   ];
 </script>
 
+<link rel="icon" type="image/png" href="assets/favicon.png" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
@@ -277,48 +278,6 @@
     100%{ transform:scale(1)    rotate(360deg); }
   }
 
-  /* TIP PHASE: hangs on by the edge — pivots from its bottom-left corner,
-     tipping further and further like it's barely holding on, with little
-     catches where it almost steadies itself before slipping more. */
-  @keyframes logoTip{
-    0%  { transform:rotate(0deg); }
-    15% { transform:rotate(6deg); }
-    25% { transform:rotate(4deg); }   /* small catch — almost holds */
-    45% { transform:rotate(13deg); }
-    58% { transform:rotate(11deg); }  /* catches again */
-    75% { transform:rotate(24deg); }
-    88% { transform:rotate(30deg); }
-    100%{ transform:rotate(34deg); }  /* right on the brink */
-  }
-
-  /* FALL PHASE: thread snaps — drops STRAIGHT DOWN, vertically, off screen.
-     Runs while the logo is position:fixed (set by JS) so it escapes the header. */
-  @keyframes logoDrop{
-    0%  { transform:translateY(0)     rotate(34deg); opacity:1; }
-    7%  { transform:translateY(0)     rotate(38deg); }   /* the final slip */
-    100%{ transform:translateY(120vh) rotate(50deg); opacity:1; }
-  }
-
-  /* SNEAK PHASE: casually slides back in from the left like nothing happened */
-  @keyframes logoSneak{
-    0%  { transform:translateX(-340px) rotate(-5deg); opacity:0; }
-    20% { transform:translateX(-340px) rotate(-5deg); opacity:1; }
-    55% { transform:translateX(-140px) rotate(-3deg); }
-    80% { transform:translateX(-45px)  rotate(-1deg); }
-    93% { transform:translateX(-8px)   rotate(0deg); }
-    100%{ transform:translateX(0)      rotate(0deg); opacity:1; }
-  }
-
-  .brand.popping,
-  .brand.is-in.popping      { animation:logoPop     1.5s cubic-bezier(.2,.9,.25,1.2)  !important; z-index:50; }
-  .brand.spin-popping,
-  .brand.is-in.spin-popping { animation:logoSpinPop 1.4s cubic-bezier(.3,.8,.25,1.1)  !important; z-index:50; }
-
-  /* falling phases — driven by JS adding these classes in sequence */
-  .brand.tipping  { animation:logoTip   2.2s cubic-bezier(.45,.05,.55,.95) forwards !important; z-index:50; transform-origin:0% 100%; }
-  .brand.dropping { animation:logoDrop  0.9s cubic-bezier(.45,.05,.75,.6) forwards !important; z-index:9999; transform-origin:0% 100%; }
-  .brand.sneaking { animation:logoSneak 2.2s cubic-bezier(.25,.8,.3,1) forwards !important; z-index:50; }
-  .brand.fixed-fall{ position:fixed !important; }
 
   /* ---------- RESPONSIVE ---------- */
   @media (max-width:760px){
@@ -471,7 +430,7 @@
     let busy=false;
 
     function clearAll(){
-      brand.classList.remove('popping','spin-popping','tipping','dropping','sneaking','fixed-fall');
+      brand.classList.remove('popping','spin-popping');
       brand.style.left=''; brand.style.top=''; brand.style.width='';
     }
 
@@ -484,50 +443,10 @@
       setTimeout(()=>{ brand.classList.remove(cls); busy=false; }, dur);
     }
 
-    // the multi-phase fall: tip -> snap & drop straight down -> sneak back in
-    function runFall(){
-      if(busy) return; busy=true;
-      clearAll();
-      void brand.offsetWidth;
-
-      // PHASE 1: hang on the edge & tip over (~2.2s)
-      brand.classList.add('tipping');
-
-      setTimeout(()=>{
-        // PHASE 2: thread snaps. Lock the logo to its exact on-screen spot using
-        // position:fixed so it can fall STRAIGHT DOWN past everything.
-        // (Logo is position:absolute / out of flow, so nothing else can move.)
-        const r=brand.getBoundingClientRect();
-
-        brand.classList.remove('tipping');
-        brand.style.left = r.left+'px';
-        brand.style.top  = r.top +'px';
-        brand.style.width= r.width+'px';
-        brand.classList.add('fixed-fall');
-        void brand.offsetWidth;
-        brand.classList.add('dropping'); // 0.9s vertical drop
-
-        setTimeout(()=>{
-          // PHASE 3: it's offscreen now. Drop the fixed positioning so it
-          // returns to its normal slot, then sneak it in from the left.
-          brand.classList.remove('dropping','fixed-fall');
-          brand.style.left=''; brand.style.top=''; brand.style.width='';
-          void brand.offsetWidth;
-          brand.classList.add('sneaking'); // 2.2s casual slide-in
-
-          setTimeout(()=>{
-            brand.classList.remove('sneaking');
-            busy=false;
-          }, 2200);
-        }, 950);
-      }, 2200);
-    }
-
     function triggerRandom(){
-      const roll=Math.floor(Math.random()*3);
-      if(roll===0)      runSimple('popping',1600);
-      else if(roll===1) runSimple('spin-popping',1500);
-      else              runFall();
+      const roll=Math.floor(Math.random()*2);
+      if(roll===0) runSimple('popping',1600);
+      else         runSimple('spin-popping',1500);
     }
 
     brand.addEventListener('click',triggerRandom);
