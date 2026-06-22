@@ -323,20 +323,15 @@
   /* ---------- RESPONSIVE ---------- */
   @media (max-width:760px){
     .brand{ top:16px; left:0; right:0; margin:0 auto; width:clamp(140px,42vw,200px); }
-    .contact-wrap{ top:110px; left:0; right:0; margin:0; width:100%; justify-content:center; }
+    .contact-wrap .arrow{ display:none; }
+    .contact-wrap{ top:110px; left:0; right:0; margin:0 auto; width:max-content; justify-content:center; }
     main{ padding-top:250px; padding-bottom:170px; }
     .lower{ flex-direction:column; align-items:center; }
     .frame--video{ max-width:100%; }
     .frame--work,.frame--photos{ width:min(86vw,360px); }
     .floor{ height:120px; background-size:auto 120px; }
-    .skeleton{ height:120px; bottom:0; animation-duration:3s; }
-    .skeleton.run{ animation-name:dash-fast; animation-duration:3s; }
-  }
-  @keyframes dash-fast{
-    0%   { left:-20vw; opacity:0; }
-    6%   { opacity:1; }
-    94%  { opacity:1; }
-    100% { left:110vw; opacity:1; }
+    .skeleton{ height:120px; bottom:0; }
+    .skeleton.run{ animation:dash 2.8s linear; }
   }
 
   @media (prefers-reduced-motion:reduce){
