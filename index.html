@@ -161,7 +161,7 @@
   }
 
   /* Frame 1 — Video (16:9) */
-  .frame--video{ aspect-ratio:2496 / 1404; max-width:780px; margin:0 auto; }
+  .frame--video{ aspect-ratio:2496 / 1404; max-width:1060px; margin:0 auto; }
   .frame--video::before{ background-image:url("assets/png_gif/ornate_frame.png"); }
   .frame--video .slot{
     width:var(--f1-w); height:var(--f1-h); left:var(--f1-l); top:var(--f1-t);
@@ -323,12 +323,20 @@
   /* ---------- RESPONSIVE ---------- */
   @media (max-width:760px){
     .brand{ top:16px; left:0; right:0; margin:0 auto; width:clamp(140px,42vw,200px); }
-    .contact-wrap{ top:110px; left:0; right:0; margin:0 auto; width:max-content; justify-content:center; }
+    .contact-wrap{ top:110px; left:0; right:0; margin:0; width:100%; justify-content:center; }
     main{ padding-top:250px; padding-bottom:170px; }
     .lower{ flex-direction:column; align-items:center; }
+    .frame--video{ max-width:100%; }
     .frame--work,.frame--photos{ width:min(86vw,360px); }
     .floor{ height:120px; background-size:auto 120px; }
-    .skeleton{ height:120px; bottom:0; }
+    .skeleton{ height:120px; bottom:0; animation-duration:3s; }
+    .skeleton.run{ animation-name:dash-fast; animation-duration:3s; }
+  }
+  @keyframes dash-fast{
+    0%   { left:-20vw; opacity:0; }
+    6%   { opacity:1; }
+    94%  { opacity:1; }
+    100% { left:110vw; opacity:1; }
   }
 
   @media (prefers-reduced-motion:reduce){
@@ -383,7 +391,7 @@
       <!-- Frame 2: Other Work -->
       <div class="frame frame--work reveal" id="frameWork">
         <div class="slot">
-          <div class="slot-title">SOME OF MY OTHER WORK</div>
+          <div class="slot-title">Other Work</div>
           <ul class="work-list" id="workList"></ul>
         </div>
       </div>
