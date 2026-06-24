@@ -579,9 +579,6 @@ body{
   /* stage inset matches the tighter glow */
   .stage{ inset:6px; }
 
-  /* marquee font is too large for a small board — scale it way down */
-  .mrow .track{ font-size:14px !important; letter-spacing:3px !important; }
-
   /* settings moves BELOW the board */
   .settings{ order:1; }
   .settings-card{

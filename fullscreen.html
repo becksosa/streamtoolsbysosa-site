@@ -179,7 +179,7 @@ html, body{
   transition:background .3s ease, filter .35s ease;
 }
 .cell::before{
-  content:''; position:absolute; inset:0; z-index:5; pointer-events:none;
+  content:''; position:absolute; inset:0; z-index:1; pointer-events:none;
   background-color:var(--border-tint,#c8102e);
   background-image:var(--border-img,url('assets/borders/border1.png'));
   background-size:100% 100%; background-repeat:no-repeat;
@@ -217,19 +217,23 @@ html, body{
 .cell.sold .sold-x{ opacity:1; animation:xStamp .35s cubic-bezier(.34,1.56,.64,1); }
 @keyframes xStamp{ from{transform:scale(1.6) rotate(-10deg)} to{transform:scale(1) rotate(0)} }
 
-/* outer glow */
+/* outer glow — must match the actual .fs-stage size (which is aspect-ratio
+   constrained + centered), NOT the full stage-bleed, or it glows around an
+   invisible oversized box. Centered absolutely with the same sizing rules. */
 #fsOuterGlow{
-  position:absolute; inset:0; z-index:0; border-radius:10px;
+  position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+  height:100%; aspect-ratio:2/1; max-height:100%; max-width:100%;
+  z-index:0; border-radius:10px;
   pointer-events:none; opacity:0; transition:opacity .3s ease; will-change:opacity;
 }
 #fsOuterGlow::before,#fsOuterGlow::after{
   content:''; position:absolute; inset:0; border-radius:10px; pointer-events:none;
 }
 #fsOuterGlow::before{
-  box-shadow:0 0 16px 2px var(--team,#a855f7), 0 0 28px 0 var(--team,#a855f7); opacity:1;
+  box-shadow:0 0 12px 1px var(--team,#a855f7), 0 0 20px 0 var(--team,#a855f7); opacity:1;
 }
 #fsOuterGlow::after{
-  box-shadow:0 0 22px 4px var(--team,#a855f7), 0 0 34px 1px var(--team,#a855f7); opacity:0;
+  box-shadow:0 0 16px 2px var(--team,#a855f7), 0 0 26px 1px var(--team,#a855f7); opacity:0;
 }
 #fsOuterGlow.team-pulse{ opacity:1; }
 #fsOuterGlow.team-pulse::after{ animation:glowFade 1.4s ease-in-out infinite alternate; }
