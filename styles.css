@@ -564,7 +564,23 @@ body{
 
   /* board gets the whole width — no padding fighting it */
   .board-region{ padding:0 8px; }
-  .stage-bleed::before{ padding-top:53.7%; } /* keep ratio */
+  .stage-bleed::before{ padding-top:53.7%; }
+
+  /* clip the glow so it can't bleed outside the board bounds on narrow screens */
+  .stage-bleed{ overflow:hidden; border-radius:10px; }
+  /* tighten the glow inset and reduce spread so it stays inside */
+  .outer-glow{ inset:6px; }
+  .outer-glow::before{
+    box-shadow: 0 0 10px 1px var(--team,#a855f7), 0 0 18px 0 var(--team,#a855f7);
+  }
+  .outer-glow::after{
+    box-shadow: 0 0 14px 2px var(--team,#a855f7), 0 0 22px 1px var(--team,#a855f7);
+  }
+  /* stage inset matches the tighter glow */
+  .stage{ inset:6px; }
+
+  /* marquee font is too large for a small board — scale it way down */
+  .mrow .track{ font-size:14px !important; letter-spacing:3px !important; }
 
   /* settings moves BELOW the board */
   .settings{ order:1; }
