@@ -1,0 +1,617 @@
+/* ============================================================
+   Stream Tools by Sosa — dark / futuristic / purple
+   Display: Chakra Petch  ·  Body: Inter  ·  Data: Space Mono
+   ============================================================ */
+:root{
+  --bg:        #0a0a0f;
+  --bg-2:      #0d0c14;
+  --panel:     #13121c;
+  --panel-2:   #1a1826;
+  --line:      #251f3a;
+  --purple:    #8b5cf6;
+  --violet:    #a855f7;
+  --violet-hi: #c084fc;
+  --edge:      #22d3ee;   /* cool glint, used sparingly */
+  --ink:       #e9e7f0;
+  --ink-dim:   #9a93b3;
+  --ink-faint: #645c80;
+
+  --stage-w: 1000px;
+  --stage-h: 500px;       /* 8x4 grid, wide for the showcase */
+
+  /* board design — defined here so cells render correctly on first paint,
+     before JS applies the saved theme/border */
+  --border-img:  url('assets/borders/border1.png');
+  --border-tint: #8b5cf6;
+  --bg-color:    #100a1a;
+}
+
+*{ box-sizing:border-box; margin:0; padding:0; }
+html{ scroll-behavior:smooth; }
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:'Inter',system-ui,sans-serif;
+  font-size:16px;
+  line-height:1.55;
+  overflow-x:hidden;
+  min-height:100vh;
+}
+
+/* ambient background: layered radial glows + faint grid */
+.bg-field{
+  position:fixed; inset:0; z-index:-1; pointer-events:none;
+  background:
+    radial-gradient(60% 50% at 50% -8%, rgba(139,92,246,.18), transparent 70%),
+    radial-gradient(45% 40% at 88% 18%, rgba(34,211,238,.06), transparent 70%),
+    radial-gradient(55% 45% at 8% 60%, rgba(168,85,247,.10), transparent 70%),
+    linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 100%);
+}
+.bg-field::after{
+  content:''; position:absolute; inset:0;
+  background-image:
+    linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
+  background-size:46px 46px;
+  mask-image:radial-gradient(70% 60% at 50% 35%, #000 30%, transparent 80%);
+  opacity:.5;
+}
+
+/* ===================== TOP BAR ===================== */
+.topbar{
+  display:flex; align-items:center; justify-content:space-between;
+  gap:24px; padding:22px clamp(20px,4vw,56px) 8px;
+  max-width:1320px; margin:0 auto;
+}
+.brand{ display:flex; align-items:center; text-decoration:none; color:var(--ink); }
+.brand-logo{
+  height:74px; width:auto; max-width:340px; object-fit:contain;
+  filter:drop-shadow(0 0 16px rgba(139,92,246,.45));
+}
+
+.contacts{ display:flex; gap:12px; }
+.chip{
+  display:flex; align-items:center; gap:9px;
+  padding:9px 14px; border-radius:12px; text-decoration:none;
+  background:linear-gradient(180deg, var(--panel-2), var(--panel));
+  border:1px solid var(--line); color:var(--ink);
+  transition:border-color .2s, transform .2s, box-shadow .2s;
+}
+.chip svg{ color:var(--violet-hi); flex:none; }
+/* the label+value stack in a column between the icon */
+.chip{ }
+.chip-label{
+  font-family:'Space Mono',monospace; font-size:9.5px; letter-spacing:2px;
+  text-transform:uppercase; color:var(--ink-faint);
+  display:block; line-height:1.2;
+}
+.chip-value{ font-size:13.5px; font-weight:600; display:block; line-height:1.2; }
+.chip-text{ display:flex; flex-direction:column; gap:1px; }
+.chip:hover{
+  border-color:rgba(139,92,246,.6); transform:translateY(-1px);
+  box-shadow:0 6px 22px rgba(139,92,246,.18);
+}
+
+/* ===================== HERO ===================== */
+.hero{
+  max-width:1080px; margin:0 auto; padding:40px clamp(20px,4vw,56px) 26px;
+  text-align:center;
+}
+.eyebrow{
+  font-family:'Space Mono',monospace; font-size:11px; letter-spacing:3.5px;
+  text-transform:uppercase; color:var(--ink-dim);
+  display:inline-flex; align-items:center; gap:10px; margin-bottom:22px;
+}
+.seam-dot{
+  width:7px; height:7px; border-radius:50%; background:var(--edge);
+  box-shadow:0 0 10px var(--edge); animation:dotPulse 2.4s ease-in-out infinite;
+}
+@keyframes dotPulse{ 0%,100%{opacity:.4} 50%{opacity:1} }
+
+.pitch{
+  font-family:'Chakra Petch',sans-serif; font-weight:700;
+  font-size:clamp(34px,6vw,62px); line-height:1.02; letter-spacing:-.5px;
+  text-transform:uppercase;
+}
+.pitch-line{
+  display:block;
+  background:linear-gradient(92deg,var(--violet-hi),var(--purple) 60%,var(--edge));
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+  margin-top:6px;
+}
+.subpitch{
+  max-width:620px; margin:22px auto 0; color:var(--ink-dim);
+  font-size:clamp(15px,1.7vw,17.5px); line-height:1.65;
+}
+
+/* ===================== BOARD REGION ===================== */
+.board-region{
+  max-width:1280px; margin:18px auto 0; padding:0 clamp(16px,4vw,40px);
+}
+.board-label{
+  display:flex; align-items:baseline; gap:16px; justify-content:center;
+  margin-bottom:18px; flex-wrap:wrap;
+}
+.board-eyebrow{
+  font-family:'Space Mono',monospace; font-size:10.5px; letter-spacing:3px;
+  text-transform:uppercase; color:var(--violet-hi);
+  border:1px solid rgba(139,92,246,.4); border-radius:999px; padding:5px 13px;
+  background:rgba(139,92,246,.08);
+}
+.board-hint{ font-size:13.5px; color:var(--ink-faint); }
+
+/* settings card on the left, stage in the middle */
+.board-row{
+  display:grid;
+  grid-template-columns:230px minmax(0, calc(var(--stage-w) + 80px));
+  gap:28px;
+  justify-content:center;
+  align-items:start;
+}
+
+/* ============ SETTINGS CARD ============ */
+.settings{ position:sticky; top:24px; }
+.settings-card{
+  background:linear-gradient(180deg, var(--panel-2), var(--panel));
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:18px 16px;
+  box-shadow:0 24px 60px -28px rgba(0,0,0,.9);
+}
+.set-section{ padding:10px 0; border-top:1px solid rgba(255,255,255,.04); }
+.set-section:first-child{ border-top:0; padding-top:2px; }
+.set-heading{
+  font-family:'Space Mono',monospace; font-size:10px; letter-spacing:2.5px;
+  text-transform:uppercase; color:var(--ink-dim); font-weight:400;
+  display:flex; align-items:center; justify-content:space-between;
+  margin-bottom:12px;
+}
+.set-value{
+  font-family:'Chakra Petch',sans-serif; font-weight:600; font-size:13px;
+  letter-spacing:.5px; color:var(--violet-hi); text-transform:none;
+}
+
+/* theme dots */
+.theme-grid{
+  display:grid; grid-template-columns:repeat(4,1fr); gap:8px;
+}
+.theme-dot{
+  position:relative; cursor:pointer; border:0; padding:0;
+  width:100%; aspect-ratio:1; border-radius:50%;
+  background:var(--swatch,#444);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.08);
+  transition:transform .15s, box-shadow .2s;
+}
+.theme-dot::after{
+  content:''; position:absolute; inset:-4px; border-radius:50%;
+  border:1.5px solid transparent; transition:border-color .2s;
+}
+.theme-dot:hover{ transform:scale(1.08); }
+.theme-dot.active::after{ border-color:var(--violet-hi); }
+.theme-dot:focus-visible{ outline:2px solid var(--edge); outline-offset:3px; }
+
+/* border style swatches */
+.border-grid{
+  display:grid; grid-template-columns:repeat(3,1fr); gap:7px;
+}
+.border-swatch{
+  cursor:pointer; border:0; padding:0;
+  aspect-ratio:1; border-radius:7px;
+  background:linear-gradient(150deg,#1a1826,#0e0d18);
+  position:relative; overflow:hidden;
+  transition:transform .15s;
+}
+.border-swatch::before{
+  content:''; position:absolute; inset:5px; border-radius:4px;
+  background-color:#a78bfa;
+  background-image:var(--swatch-img);
+  background-size:100% 100%; background-repeat:no-repeat;
+  background-blend-mode:multiply;
+  -webkit-mask:var(--swatch-img) center/100% 100% no-repeat;
+          mask:var(--swatch-img) center/100% 100% no-repeat;
+}
+.border-swatch::after{
+  content:''; position:absolute; inset:0; border-radius:7px;
+  border:1.5px solid transparent; transition:border-color .2s;
+}
+.border-swatch:hover{ transform:translateY(-1px); }
+.border-swatch.active::after{ border-color:var(--violet-hi); }
+.border-swatch:focus-visible{ outline:2px solid var(--edge); outline-offset:2px; }
+
+/* range slider */
+.range{
+  -webkit-appearance:none; appearance:none;
+  width:100%; height:4px; border-radius:2px; outline:none; padding:0;
+  background:linear-gradient(90deg, var(--violet) 0%, var(--violet) var(--fill,30%), var(--line) var(--fill,30%));
+  cursor:pointer;
+}
+.range::-webkit-slider-thumb{
+  -webkit-appearance:none; appearance:none;
+  width:16px; height:16px; border-radius:50%; cursor:pointer;
+  background:#fff; box-shadow:0 0 0 4px rgba(139,92,246,.35), 0 0 12px var(--violet);
+  border:0;
+}
+.range::-moz-range-thumb{
+  width:16px; height:16px; border-radius:50%; cursor:pointer;
+  background:#fff; box-shadow:0 0 0 4px rgba(139,92,246,.35), 0 0 12px var(--violet);
+  border:0;
+}
+.range-ticks{
+  display:flex; justify-content:space-between;
+  font-family:'Space Mono',monospace; font-size:9.5px; letter-spacing:1px;
+  color:var(--ink-faint); margin-top:8px;
+}
+
+/* reset button */
+.reset-btn{
+  display:flex; align-items:center; justify-content:center; gap:8px;
+  width:100%; margin-top:14px; padding:11px 14px; cursor:pointer;
+  font-family:'Chakra Petch',sans-serif; font-weight:600; font-size:12.5px;
+  letter-spacing:1.5px; text-transform:uppercase; color:#ffd0d0;
+  background:linear-gradient(180deg, rgba(220,38,38,.18), rgba(220,38,38,.08));
+  border:1px solid rgba(248,113,113,.35); border-radius:10px;
+  transition:border-color .2s, transform .15s, box-shadow .2s, color .2s;
+}
+.reset-btn:hover{
+  color:#fff; border-color:rgba(248,113,113,.7); transform:translateY(-1px);
+  box-shadow:0 6px 22px rgba(220,38,38,.25);
+}
+.reset-btn:active{ transform:translateY(0); }
+
+/* ============ STAGE ============ */
+/* bleed wrapper: transparent margin for reveal glow spill.
+   Height comes from a padding-ratio box so the absolutely-positioned
+   stage can't collapse the layout. 40px bleed all around. */
+.stage-bleed{
+  position:relative; width:100%; max-width:calc(var(--stage-w) + 80px);
+  margin:0 auto;
+}
+.stage-bleed::before{
+  content:''; display:block;
+  /* (stage-h + 80 bleed) / (stage-w + 80 bleed) = 580/1080 */
+  padding-top:53.7%;
+}
+
+/* the OUTER perimeter glow — lives in the bleed margin, pulses team color
+   during reveal. Two static box-shadow layers cross-fade via opacity only
+   (GPU-composited; no per-frame repaint). Matches the original overlay. */
+.outer-glow{
+  position:absolute; inset:40px; z-index:0;
+  border-radius:14px; pointer-events:none;
+  opacity:0; transition:opacity .3s ease; will-change:opacity;
+}
+.outer-glow::before, .outer-glow::after{
+  content:''; position:absolute; inset:0; border-radius:14px;
+  pointer-events:none;
+}
+.outer-glow::before{
+  box-shadow:
+    0 0 18px 2px var(--team,#a855f7),
+    0 0 32px 0   var(--team,#a855f7);
+  opacity:1;
+}
+.outer-glow::after{
+  box-shadow:
+    0 0 26px 5px var(--team,#a855f7),
+    0 0 44px 2px var(--team,#a855f7);
+  opacity:0;
+}
+.outer-glow.team-pulse{ opacity:1; }
+.outer-glow.team-pulse::after{
+  animation:outerGlowFade 1.4s ease-in-out infinite alternate;
+}
+@keyframes outerGlowFade{ from{opacity:0} to{opacity:1} }
+
+.stage{
+  position:absolute; inset:40px; border-radius:14px;
+  background:linear-gradient(160deg, var(--panel) 0%, var(--bg-2) 100%);
+  overflow:hidden;
+  box-shadow:
+    0 0 0 1px var(--line),
+    0 30px 80px -30px rgba(0,0,0,.9),
+    inset 0 1px 0 rgba(255,255,255,.04);
+}
+/* signature "energy seam" tracing the stage edge */
+.stage::before{
+  content:''; position:absolute; inset:0; border-radius:14px; padding:1.5px;
+  background:linear-gradient(120deg,
+    transparent 15%, var(--border-tint) 35%, #ffffff 50%,
+    var(--border-tint) 65%, transparent 85%);
+  background-size:300% 100%; opacity:.85;
+  -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor; mask-composite:exclude;
+  animation:seamSweep 6s linear infinite;
+  pointer-events:none; z-index:6;
+}
+@keyframes seamSweep{ from{background-position:0% 0} to{background-position:300% 0} }
+
+/* ---- the 8x4 grid — cells touch (gap 0), borders are the board design ---- */
+.board{
+  position:absolute; inset:0; z-index:2;
+  display:grid;
+  grid-template-columns:repeat(8,1fr);
+  grid-template-rows:repeat(4,1fr);
+  gap:0; padding:0;
+}
+.cell{
+  position:relative; overflow:hidden; cursor:pointer; border:0;
+  display:flex; align-items:center; justify-content:center; padding:4px;
+  /* each cell paints its own backing; theme drives --bg-color (board bg only) */
+  background:linear-gradient(135deg, var(--bg-color, #0a0d18) 0%, var(--panel) 100%);
+  isolation:isolate;
+  contain:layout paint style;
+  transition:background .3s ease, opacity .35s ease, filter .35s ease;
+}
+/* Border art (the break-board design). Tinted via multiply (keeps the PNG's
+   grayscale detail), shaped via mask. z-index ABOVE the logo, like the
+   original, so the frame is always visible on every cell. SOLID color tint —
+   a gradient does not fill through a CSS mask. */
+.cell::before{
+  content:''; position:absolute; inset:0; z-index:1; pointer-events:none;
+  background-color:var(--border-tint, #c8102e);
+  background-image:var(--border-img, url('assets/borders/border1.png'));
+  background-size:100% 100%;
+  background-repeat:no-repeat;
+  background-blend-mode:multiply;
+  -webkit-mask:var(--border-img, url('assets/borders/border1.png')) center/100% 100% no-repeat;
+          mask:var(--border-img, url('assets/borders/border1.png')) center/100% 100% no-repeat;
+  transition:background-color .4s ease;
+}
+.cell .team-logo{
+  width:86px; height:86px; max-width:78%; max-height:78%; object-fit:contain; z-index:2;
+  filter:drop-shadow(0 0 1px #fff) drop-shadow(0 0 1px #fff) drop-shadow(0 0 2px #fff);
+  transition:opacity .25s ease, transform .18s ease;
+  pointer-events:none;
+}
+.cell .team-fallback{
+  z-index:2; font-family:'Chakra Petch',sans-serif; font-weight:700;
+  font-size:clamp(11px,1.6vw,17px); color:var(--ink); letter-spacing:.5px;
+  pointer-events:none; text-shadow:0 0 8px rgba(139,92,246,.5);
+}
+.cell:hover .team-logo{ transform:scale(1.05); }
+.cell:focus-visible{ outline:2px solid var(--edge); outline-offset:-2px; }
+
+/* spotlight phase — selected cell glows, others go dark via brightness/grayscale
+   (NOT opacity), exactly like the original. */
+.board.spotlight .cell:not(.spotlit){ filter:grayscale(85%) brightness(.15); }
+.cell.spotlit{ z-index:3; }
+.cell.spotlit::after{
+  content:''; position:absolute; inset:0; z-index:7; pointer-events:none;
+  border-radius:2px;
+  box-shadow:0 0 26px var(--team,#c8102e), inset 0 0 16px var(--team,#c8102e);
+  will-change:opacity;
+  animation:cellGlowFade .9s ease-in-out infinite alternate;
+}
+@keyframes cellGlowFade{ from{opacity:.45} to{opacity:1} }
+.cell.lifted .team-logo{ opacity:0; }
+
+/* SOLD state — x.png overlaid, matching the original .sold-x structure */
+.cell.sold{ background-color:rgba(0,0,0,.55); background-blend-mode:multiply; }
+.cell .sold-x{
+  position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+  opacity:0; transition:opacity .15s ease; pointer-events:none; z-index:6;
+}
+.cell .sold-x img{ width:78%; height:78%; object-fit:contain;
+  filter:drop-shadow(0 0 6px rgba(0,0,0,.6)); }
+.cell.sold .sold-x{ opacity:1; animation:xStamp .35s cubic-bezier(.34,1.56,.64,1); }
+@keyframes xStamp{ from{ transform:scale(1.6) rotate(-10deg); } to{ transform:scale(1) rotate(0); } }
+
+/* ---- reveal overlay ---- */
+.reveal-overlay{
+  position:absolute; inset:0; z-index:10; pointer-events:none;
+  opacity:0; visibility:hidden;
+  background:#000;
+  transition:opacity .28s ease, visibility .28s;
+}
+.reveal-overlay.active{ opacity:1; visibility:visible; }
+
+.preview-video{
+  position:absolute; inset:0; width:100%; height:100%; object-fit:cover;
+  z-index:1; opacity:0; transition:opacity .6s ease;
+}
+.preview-video.show{ opacity:1; }
+
+.ghost-logo{
+  position:absolute; top:50%; left:-60%; z-index:2;
+  width:110%; height:110%; object-fit:contain;
+  opacity:0; transform:translateY(-50%);
+  filter:grayscale(100%) brightness(2);
+}
+.ghost-logo.slide{
+  animation:ghostSlide 4.5s linear forwards;
+}
+@keyframes ghostSlide{
+  0%{ left:-42%; opacity:0; }
+  8%{ opacity:.16; }
+  92%{ opacity:.16; }
+  100%{ left:130%; opacity:0; }
+}
+
+/* diagonal scrolling team-name marquee — clipped to the board rectangle so
+   the names never spill out. Inner plane is oversized + tilted -9deg. Matches
+   the original overlay. */
+.marquee-field{
+  position:absolute; inset:0; z-index:2; pointer-events:none; overflow:hidden;
+  opacity:0; transition:opacity .4s ease;
+}
+.marquee-field.play{ opacity:1; }
+.marquee-field.fade-out{ opacity:0; transition:opacity .6s ease; }
+.mfield-inner{ position:absolute; inset:-25% -60%; transform:rotate(-9deg); }
+.mrow{ position:absolute; left:0; width:100%; white-space:nowrap; overflow:hidden; }
+.mrow .track{
+  display:inline-block; white-space:nowrap;
+  font-family:'Chakra Petch',sans-serif; font-weight:700;
+}
+.mrow.dir-left .track{ animation:scrollLeft linear infinite; }
+.mrow.dir-right .track{ animation:scrollRight linear infinite; }
+@keyframes scrollLeft{ from{transform:translateX(0)} to{transform:translateX(-50%)} }
+@keyframes scrollRight{ from{transform:translateX(-50%)} to{transform:translateX(0)} }
+
+.reveal-logo{
+  position:absolute; top:50%; left:50%; z-index:3;
+  width:0; height:0; object-fit:contain;
+  transform:translate(-50%,-50%) scale(.2);
+  opacity:0;
+  /* reduced from 6 -> 2 drop-shadow layers (perf) */
+  filter:drop-shadow(0 0 22px #fff) drop-shadow(0 0 44px var(--team,#a855f7));
+}
+.reveal-logo.fly{
+  width:62%; height:62%;
+  animation:logoFly 1.05s cubic-bezier(.18,.78,.32,1.15) forwards;
+}
+@keyframes logoFly{
+  0%{ transform:translate(-50%,-50%) scale(.15) rotate(-8deg); opacity:0; }
+  55%{ opacity:1; }
+  70%{ transform:translate(-50%,-50%) scale(1.12) rotate(2deg); }
+  100%{ transform:translate(-50%,-50%) scale(1) rotate(0); opacity:1; }
+}
+/* end of reveal: logo slides off to the LEFT via transform so it glides
+   smoothly from exactly where it stopped (no snap/jump). */
+.reveal-logo.slide-off{
+  width:62%; height:62%;
+  animation:logoSlideOff .8s cubic-bezier(.5,0,.75,0) forwards;
+}
+@keyframes logoSlideOff{
+  from{ transform:translate(-50%,-50%) scale(1); opacity:1; }
+  to  { transform:translate(-200%,-50%) scale(1); opacity:0; }
+}
+
+/* ===================== YOUTUBE CAROUSEL ===================== */
+.reel{ max-width:1000px; margin:84px auto 0; padding:0 clamp(16px,4vw,40px); }
+.reel-head{ text-align:center; margin-bottom:26px; }
+.reel-eyebrow{
+  font-family:'Space Mono',monospace; font-size:10.5px; letter-spacing:3px;
+  text-transform:uppercase; color:var(--ink-dim);
+}
+.reel-title{
+  font-family:'Chakra Petch',sans-serif; font-weight:700; text-transform:uppercase;
+  font-size:clamp(24px,3.4vw,34px); letter-spacing:-.3px; margin-top:4px;
+}
+.reel-stage{ display:flex; align-items:center; gap:clamp(8px,2vw,20px); }
+.reel-arrow{
+  flex:none; width:52px; height:52px; border-radius:50%; cursor:pointer;
+  display:grid; place-items:center; color:var(--ink);
+  background:linear-gradient(180deg,var(--panel-2),var(--panel));
+  border:1px solid var(--line);
+  transition:border-color .2s, color .2s, transform .15s, box-shadow .2s;
+}
+.reel-arrow:hover{
+  color:#fff; border-color:rgba(139,92,246,.65); transform:scale(1.06);
+  box-shadow:0 6px 22px rgba(139,92,246,.22);
+}
+.reel-arrow:active{ transform:scale(.96); }
+.reel-frame{
+  flex:1; position:relative; border-radius:16px; padding:1.5px;
+  background:linear-gradient(135deg, rgba(139,92,246,.5), rgba(34,211,238,.3));
+}
+.reel-screen{
+  position:relative; border-radius:15px; overflow:hidden;
+  aspect-ratio:16/9; background:#000;
+  box-shadow:0 24px 60px -24px rgba(0,0,0,.9);
+}
+.reel-screen iframe{ position:absolute; inset:0; width:100%; height:100%; border:0; }
+.reel-dots{ display:flex; gap:9px; justify-content:center; margin-top:20px; }
+.reel-dots button{
+  width:9px; height:9px; border-radius:50%; border:0; cursor:pointer; padding:0;
+  background:var(--line); transition:background .2s, transform .2s, width .2s;
+}
+.reel-dots button.on{
+  width:24px; border-radius:5px;
+  background:linear-gradient(90deg,var(--violet),var(--edge));
+}
+
+/* ===================== FOOTER ===================== */
+.footer{
+  max-width:1180px; margin:90px auto 0; padding:30px clamp(20px,4vw,56px) 44px;
+  border-top:1px solid var(--line);
+  display:flex; gap:12px; align-items:center; justify-content:center;
+  font-family:'Space Mono',monospace; font-size:11.5px; letter-spacing:1.5px;
+  color:var(--ink-faint); text-transform:uppercase;
+}
+.footer-sep{ color:var(--violet); }
+
+/* ===================== FULLSCREEN BUTTON ===================== */
+.fullscreen-btn{
+  display:inline-flex; align-items:center; gap:7px;
+  font-family:'Space Mono',monospace; font-size:10px; letter-spacing:2px;
+  text-transform:uppercase; color:var(--ink-dim); text-decoration:none;
+  border:1px solid var(--line); border-radius:999px; padding:5px 12px;
+  transition:color .2s, border-color .2s;
+}
+.fullscreen-btn:hover{ color:var(--ink); border-color:rgba(139,92,246,.5); }
+
+/* ===================== RESPONSIVE ===================== */
+/* ---- tablet: settings stacks above, board full width ---- */
+@media (max-width:1080px){
+  .board-row{
+    grid-template-columns:1fr;
+    max-width:calc(var(--stage-w) + 80px);
+    margin:0 auto;
+  }
+  /* on tablet settings goes first (above the board) in a horizontal layout */
+  .settings{ position:static; order:-1; }
+  .settings-card{
+    display:grid; grid-template-columns:repeat(4,1fr);
+    gap:0 20px; align-items:start;
+  }
+  .set-section{ border-top:0; padding:6px 0; }
+  .reset-btn{ grid-column:4; align-self:end; margin-top:0; }
+}
+
+/* ---- mobile: compact horizontal settings strip BELOW the board ---- */
+@media (max-width:700px){
+  .board-row{ gap:14px; }
+
+  /* board gets the whole width — no padding fighting it */
+  .board-region{ padding:0 8px; }
+  .stage-bleed::before{ padding-top:53.7%; } /* keep ratio */
+
+  /* settings moves BELOW the board */
+  .settings{ order:1; }
+  .settings-card{
+    display:flex; flex-wrap:wrap; gap:12px 20px;
+    padding:14px 14px 10px; background:linear-gradient(180deg,var(--panel-2),var(--panel));
+    border:1px solid var(--line); border-radius:14px;
+  }
+  .set-section{ padding:0; border-top:0; flex:none; }
+  /* theme dots + border swatches go side by side */
+  .theme-grid{ grid-template-columns:repeat(8,1fr); gap:6px; }
+  .border-grid{ grid-template-columns:repeat(6,1fr); gap:5px; }
+  .theme-dot{ width:28px; height:28px; }
+  .border-swatch{ width:28px; }
+  /* video time takes remaining space */
+  .set-section:has(#timeRange){ flex:1; min-width:120px; }
+  .reset-btn{ width:auto; margin-top:0; flex:none; align-self:flex-end; padding:10px 16px; }
+
+  /* tighten board cells a touch */
+  .board{ gap:0; }
+
+  /* top bar */
+  .topbar{ flex-direction:column; gap:12px; align-items:flex-start; }
+  .contacts{ width:100%; }
+  .chip{ flex:1; }
+
+  /* hero */
+  .pitch{ font-size:28px; }
+
+  /* reel */
+  .reel-arrow{ width:38px; height:38px; }
+
+  /* board-label: wrap the fullscreen btn below */
+  .board-label{ flex-wrap:wrap; gap:8px 16px; justify-content:center; }
+}
+
+@media (max-width:400px){
+  .chip-value{ display:none; }
+  .pitch{ font-size:24px; }
+  .theme-dot{ width:24px; height:24px; }
+  .border-swatch{ width:24px; }
+}
+
+/* accessibility: respect reduced motion */
+@media (prefers-reduced-motion:reduce){
+  .stage::before, .seam-dot, .cell.spotlit::after{ animation:none !important; }
+  .ghost-logo.slide{ animation-duration:.01ms; }
+  .reveal-logo.fly{ animation-duration:.4s; }
+  html{ scroll-behavior:auto; }
+}
